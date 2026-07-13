@@ -2,7 +2,7 @@
 
 import React, { useRef, useState, useEffect, useMemo } from 'react';
 import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { Sphere, Ring, Line, OrbitControls } from '@react-three/drei';
+import { Ring, Line, OrbitControls } from '@react-three/drei';
 import * as THREE from 'three';
 import { useNavigation, PlanetId } from '@/context/NavigationContext';
 
@@ -17,13 +17,12 @@ export const PLANET_POSITIONS: Record<PlanetId, [number, number, number]> = {
   contact: [0, 5, -13],
 };
 
-// 1. Starfield Background
+// 1. Starfield Background (Cleaned of unused variables)
 function Starfield({ count = 2500 }) {
   const pointsRef = useRef<THREE.Points>(null);
 
-  const [positions, scales] = useMemo(() => {
+  const positions = useMemo(() => {
     const pos = new Float32Array(count * 3);
-    const scl = new Float32Array(count);
     for (let i = 0; i < count; i++) {
       // Distribute stars in a huge sphere
       const r = 80 + Math.random() * 120;
@@ -33,10 +32,8 @@ function Starfield({ count = 2500 }) {
       pos[i * 3] = r * Math.sin(phi) * Math.cos(theta);
       pos[i * 3 + 1] = r * Math.sin(phi) * Math.sin(theta);
       pos[i * 3 + 2] = r * Math.cos(phi);
-
-      scl[i] = Math.random() * 0.15 + 0.05;
     }
-    return [pos, scl];
+    return pos;
   }, [count]);
 
   const timer = useMemo(() => new THREE.Timer(), []);
@@ -69,14 +66,25 @@ function Starfield({ count = 2500 }) {
   );
 }
 
-// 2. Spaceship component (custom primitives model)
-function SpaceShip({ position, rotation }: { position: THREE.Vector3; rotation: THREE.Euler }) {
+// 2. Spaceship component with active flight physics, stable bobbing, and custom engine flames
+interface SpaceShipProps {
+  position: THREE.Vector3;
+  rotation: THREE.Euler;
+  travelState: string;
+}
+
+function SpaceShip({ position, rotation, travelState }: SpaceShipProps) {
   const groupRef = useRef<THREE.Group>(null);
   const thrusterRef = useRef<THREE.PointLight>(null);
+  const flameRef = useRef<THREE.Mesh>(null);
+
+  // Remembers the last baseline position coordinates to prevent cumulative float offsets
+  const basePos = useRef<THREE.Vector3>(new THREE.Vector3(0, 2, 8));
 
   // Sync positions from parent state animation
   useEffect(() => {
     if (groupRef.current) {
+      basePos.current.copy(position);
       groupRef.current.position.copy(position);
       groupRef.current.rotation.copy(rotation);
     }
@@ -86,13 +94,50 @@ function SpaceShip({ position, rotation }: { position: THREE.Vector3; rotation: 
   useFrame((state) => {
     timer.update(state.clock.getElapsedTime());
     const elapsed = timer.getElapsed();
+
     if (groupRef.current) {
-      // Ambient floating/bobbing when not traveling
-      groupRef.current.position.y += Math.sin(elapsed * 2) * 0.0015;
+      if (travelState === 'idle') {
+        // Safe oscillation around baseline coordinates
+        groupRef.current.position.y = basePos.current.y + Math.sin(elapsed * 2.5) * 0.05;
+        
+        // Zero-g pitch hover wobble
+        groupRef.current.rotation.x = rotation.x + Math.sin(elapsed * 1.5) * 0.02;
+        groupRef.current.rotation.z = rotation.z + Math.cos(elapsed * 1.2) * 0.01;
+      }
     }
+
     if (thrusterRef.current) {
-      // Pulse thruster light intensiveness
-      thrusterRef.current.intensity = 1.5 + Math.sin(elapsed * 20) * 0.5;
+      // Dynamic intensity frequency based on travel state
+      let pulseSpeed = 20;
+      let baseIntensity = 1.5;
+      let range = 0.5;
+
+      if (travelState === 'aligning') {
+        pulseSpeed = 35;
+        baseIntensity = 2.0;
+      } else if (travelState === 'warping') {
+        pulseSpeed = 65;
+        baseIntensity = 4.5;
+        range = 1.5;
+      } else if (travelState === 'landing') {
+        pulseSpeed = 15;
+        baseIntensity = 1.8;
+      }
+
+      thrusterRef.current.intensity = baseIntensity + Math.sin(elapsed * pulseSpeed) * range;
+    }
+
+    if (flameRef.current) {
+      // Scale visual thruster flame based on engine speed
+      if (travelState === 'idle') {
+        flameRef.current.scale.set(1.0, 0.7 + Math.sin(elapsed * 30) * 0.12, 1.0);
+      } else if (travelState === 'aligning') {
+        flameRef.current.scale.set(1.25, 1.2 + Math.sin(elapsed * 45) * 0.2, 1.25);
+      } else if (travelState === 'warping') {
+        flameRef.current.scale.set(1.6, 2.6 + Math.sin(elapsed * 70) * 0.45, 1.6);
+      } else if (travelState === 'landing') {
+        flameRef.current.scale.set(0.9, 0.9 + Math.sin(elapsed * 20) * 0.1, 0.9);
+      }
     }
   });
 
@@ -128,6 +173,12 @@ function SpaceShip({ position, rotation }: { position: THREE.Vector3; rotation: 
         <meshStandardMaterial color="#334155" />
       </mesh>
 
+      {/* Visual engine flame cone */}
+      <mesh ref={flameRef} position={[0, 0, -0.45]} rotation={[Math.PI / 2, 0, 0]}>
+        <coneGeometry args={[0.07, 0.24, 8]} />
+        <meshBasicMaterial color="#00d2ff" transparent opacity={0.78} blending={THREE.AdditiveBlending} />
+      </mesh>
+
       {/* Glowing engine flame light */}
       <pointLight 
         ref={thrusterRef}
@@ -140,7 +191,28 @@ function SpaceShip({ position, rotation }: { position: THREE.Vector3; rotation: 
   );
 }
 
-// 3. Central Core Planet with orbital rings
+// 2.5 Semi-transparent atmosphere glow sphere component
+interface AtmosphereProps {
+  color: string;
+  radius: number;
+}
+
+function Atmosphere({ color, radius }: AtmosphereProps) {
+  return (
+    <mesh>
+      <sphereGeometry args={[radius, 32, 32]} />
+      <meshBasicMaterial 
+        color={color} 
+        transparent 
+        opacity={0.16} 
+        blending={THREE.AdditiveBlending}
+        side={THREE.BackSide} 
+      />
+    </mesh>
+  );
+}
+
+// 3. Central Core Planet with orbital rings and atmosphere
 function CorePlanet() {
   const planetRef = useRef<THREE.Mesh>(null);
   const ringRef = useRef<THREE.Mesh>(null);
@@ -151,6 +223,7 @@ function CorePlanet() {
     const elapsed = timer.getElapsed();
     if (planetRef.current) {
       planetRef.current.rotation.y = elapsed * 0.08;
+      planetRef.current.rotation.x = elapsed * 0.015; // Dual-axis rotation
     }
     if (ringRef.current) {
       ringRef.current.rotation.z = -elapsed * 0.03;
@@ -159,10 +232,8 @@ function CorePlanet() {
 
   return (
     <group position={PLANET_POSITIONS.core}>
-      {/* Glow aura */}
-      <Sphere args={[2.0, 32, 32]}>
-        <meshBasicMaterial color="#0055ff" transparent opacity={0.12} wireframe />
-      </Sphere>
+      {/* Atmospheric Glow */}
+      <Atmosphere radius={2.2} color="#0055ff" />
       
       {/* Core sphere */}
       <mesh ref={planetRef}>
@@ -181,11 +252,14 @@ function CorePlanet() {
         <ringGeometry args={[2.3, 2.7, 64]} />
         <meshBasicMaterial color="#00d2ff" side={THREE.DoubleSide} transparent opacity={0.3} />
       </mesh>
+
+      {/* Local lighting to reflect on passing ship */}
+      <pointLight color="#0055ff" intensity={1.8} distance={8} decay={1.5} />
     </group>
   );
 }
 
-// 4. Education Planet (Emerald theme)
+// 4. Education Planet (Emerald theme) with atmosphere
 function EducationPlanet() {
   const planetRef = useRef<THREE.Mesh>(null);
 
@@ -195,11 +269,15 @@ function EducationPlanet() {
     const elapsed = timer.getElapsed();
     if (planetRef.current) {
       planetRef.current.rotation.y = elapsed * 0.12;
+      planetRef.current.rotation.x = elapsed * 0.02; // Dual-axis rotation
     }
   });
 
   return (
     <group position={PLANET_POSITIONS.education}>
+      {/* Atmospheric Glow */}
+      <Atmosphere radius={1.2} color="#10b981" />
+
       <mesh ref={planetRef}>
         <sphereGeometry args={[1.0, 32, 32]} />
         <meshStandardMaterial 
@@ -215,11 +293,14 @@ function EducationPlanet() {
       <Ring args={[1.25, 1.4, 64]} rotation={[Math.PI / 3, 0, 0]}>
         <meshBasicMaterial color="#10b981" side={THREE.DoubleSide} transparent opacity={0.25} />
       </Ring>
+
+      {/* Local lighting */}
+      <pointLight color="#10b981" intensity={1.5} distance={6} decay={1.5} />
     </group>
   );
 }
 
-// 5. Skills Planet with Satellite categories (Purple theme)
+// 5. Skills Planet with Satellite categories (Purple theme) with atmosphere
 function SkillsPlanet() {
   const planetRef = useRef<THREE.Mesh>(null);
   const satelliteGroupRef = useRef<THREE.Group>(null);
@@ -230,6 +311,7 @@ function SkillsPlanet() {
     const elapsed = timer.getElapsed();
     if (planetRef.current) {
       planetRef.current.rotation.y = elapsed * 0.15;
+      planetRef.current.rotation.x = elapsed * 0.035;
     }
     if (satelliteGroupRef.current) {
       satelliteGroupRef.current.rotation.y = elapsed * 0.4;
@@ -238,6 +320,9 @@ function SkillsPlanet() {
 
   return (
     <group position={PLANET_POSITIONS.skills}>
+      {/* Atmospheric Glow */}
+      <Atmosphere radius={1.1} color="#9d4edd" />
+
       <mesh ref={planetRef}>
         <sphereGeometry args={[0.9, 32, 32]} />
         <meshStandardMaterial 
@@ -266,11 +351,14 @@ function SkillsPlanet() {
           );
         })}
       </group>
+
+      {/* Local lighting */}
+      <pointLight color="#9d4edd" intensity={1.5} distance={6} decay={1.5} />
     </group>
   );
 }
 
-// 6. Experience Planet with Company Pods (Blue theme)
+// 6. Experience Planet with Company Pods (Blue theme) with atmosphere
 function ExperiencePlanet() {
   const planetRef = useRef<THREE.Mesh>(null);
   const podRef1 = useRef<THREE.Mesh>(null);
@@ -282,6 +370,7 @@ function ExperiencePlanet() {
     const elapsed = timer.getElapsed();
     if (planetRef.current) {
       planetRef.current.rotation.y = elapsed * 0.05;
+      planetRef.current.rotation.x = elapsed * 0.01;
     }
     // Orbit pod 1
     if (podRef1.current) {
@@ -299,6 +388,9 @@ function ExperiencePlanet() {
 
   return (
     <group position={PLANET_POSITIONS.experience}>
+      {/* Atmospheric Glow */}
+      <Atmosphere radius={1.52} color="#00d2ff" />
+
       <mesh ref={planetRef}>
         <sphereGeometry args={[1.3, 32, 32]} />
         <meshStandardMaterial 
@@ -319,11 +411,14 @@ function ExperiencePlanet() {
         <boxGeometry args={[0.18, 0.18, 0.18]} />
         <meshStandardMaterial color="#3b82f6" emissive="#3b82f6" emissiveIntensity={0.3} />
       </mesh>
+
+      {/* Local lighting */}
+      <pointLight color="#00d2ff" intensity={1.5} distance={8} decay={1.5} />
     </group>
   );
 }
 
-// 7. Achievement Belt (Gold Theme Asteroids)
+// 7. Achievement Belt (Gold Theme Asteroids) with atmosphere
 function AchievementPlanet() {
   const planetRef = useRef<THREE.Mesh>(null);
   const beltRef = useRef<THREE.Group>(null);
@@ -347,6 +442,7 @@ function AchievementPlanet() {
     const elapsed = timer.getElapsed();
     if (planetRef.current) {
       planetRef.current.rotation.y = elapsed * 0.1;
+      planetRef.current.rotation.x = elapsed * 0.02;
     }
     if (beltRef.current) {
       beltRef.current.rotation.y = elapsed * 0.2;
@@ -355,6 +451,9 @@ function AchievementPlanet() {
 
   return (
     <group position={PLANET_POSITIONS.achievements}>
+      {/* Atmospheric Glow */}
+      <Atmosphere radius={1.02} color="#f59e0b" />
+
       <mesh ref={planetRef}>
         <sphereGeometry args={[0.8, 32, 32]} />
         <meshStandardMaterial 
@@ -375,11 +474,14 @@ function AchievementPlanet() {
           </mesh>
         ))}
       </group>
+
+      {/* Local lighting */}
+      <pointLight color="#f59e0b" intensity={1.5} distance={6} decay={1.5} />
     </group>
   );
 }
 
-// 8. Contact Satellite (Rose Theme)
+// 8. Contact Satellite (Rose Theme) with atmosphere
 function ContactSatellite() {
   const satelliteRef = useRef<THREE.Group>(null);
   const panelRef = useRef<THREE.Mesh>(null);
@@ -399,6 +501,9 @@ function ContactSatellite() {
 
   return (
     <group ref={satelliteRef} position={PLANET_POSITIONS.contact}>
+      {/* Atmospheric Glow */}
+      <Atmosphere radius={0.8} color="#f43f5e" />
+
       {/* Central capsule */}
       <mesh>
         <cylinderGeometry args={[0.3, 0.3, 0.8, 12]} />
@@ -422,22 +527,22 @@ function ContactSatellite() {
         <boxGeometry args={[0.8, 0.25, 0.02]} />
         <meshStandardMaterial color="#1e1e3f" emissive="#3b82f6" emissiveIntensity={0.2} />
       </mesh>
+
+      {/* Local lighting */}
+      <pointLight color="#f43f5e" intensity={1.5} distance={5} decay={1.5} />
     </group>
   );
 }
 
 // 9. Interactive Flight Paths & Camera Sequencer
 function UniverseScene() {
-  const { currentPlanet, targetPlanet, travelState, reducedMotion } = useNavigation();
+  const { currentPlanet, targetPlanet, travelState } = useNavigation();
   const { camera } = useThree();
   const persCamera = camera as THREE.PerspectiveCamera;
 
   // Ship positioning tracking
   const [shipPos, setShipPos] = useState<THREE.Vector3>(() => new THREE.Vector3(0, 2, 8));
   const [shipRot, setShipRot] = useState<THREE.Euler>(() => new THREE.Euler(0, 0, 0));
-
-  // Remember previous positions for transition lines
-  const prevPlanetRef = useRef<PlanetId>('space');
 
   // Animation timeline tracker
   const [progress, setProgress] = useState(0);
@@ -449,8 +554,6 @@ function UniverseScene() {
     const start = PLANET_POSITIONS[currentPlanet];
     const end = PLANET_POSITIONS[targetPlanet];
 
-    // Compute bezier curve points
-    const curvePoints: THREE.Vector3[] = [];
     const vStart = new THREE.Vector3(...start);
     const vEnd = new THREE.Vector3(...end);
 
@@ -545,10 +648,12 @@ function UniverseScene() {
       const tangent = curve.getTangentAt(currentProgress).normalize();
       const pitch = Math.asin(tangent.y);
       const yaw = Math.atan2(tangent.x, tangent.z);
-      setShipRot(new THREE.Euler(pitch, yaw, 0));
+      
+      // Roll (tilt) the spaceship dynamically in flight curves
+      const rollTilt = -tangent.x * 0.75;
+      setShipRot(new THREE.Euler(pitch, yaw, rollTilt));
 
-      // Dynamic Camera follow path
-      // Position camera behind the spaceship pointing at target
+      // Dynamic Camera follow path behind the spaceship pointing at target
       const camOffset = new THREE.Vector3()
         .copy(tangent)
         .multiplyScalar(-3.5) // Distance behind ship
@@ -556,6 +661,15 @@ function UniverseScene() {
       
       const nextCamPos = new THREE.Vector3().addVectors(currentPos, camOffset);
       camera.position.lerp(nextCamPos, 0.1);
+      
+      // Add subtle camera vibration shake during high speed warping
+      if (travelState === 'warping') {
+        const shakeIntensity = 0.024;
+        camera.position.x += (Math.random() - 0.5) * shakeIntensity;
+        camera.position.y += (Math.random() - 0.5) * shakeIntensity;
+        camera.position.z += (Math.random() - 0.5) * shakeIntensity;
+      }
+
       camera.lookAt(currentPos);
     }
   });
@@ -585,7 +699,7 @@ function UniverseScene() {
       <ContactSatellite />
 
       {/* Spaceship */}
-      <SpaceShip position={shipPos} rotation={shipRot} />
+      <SpaceShip position={shipPos} rotation={shipRot} travelState={travelState} />
 
       {/* Flight Bezier Path Overlay */}
       {flightPathPoints.length > 0 && travelState !== 'idle' && (
@@ -615,7 +729,6 @@ export default function SpaceCanvas() {
       >
         <color attach="background" args={['#020205']} />
         <UniverseScene />
-        {/* Enable static drag adjustments for keyboard/accessibility if desired */}
         <OrbitControls 
           enableZoom={false} 
           enablePan={false}

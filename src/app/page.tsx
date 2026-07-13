@@ -4,7 +4,7 @@ import React from 'react';
 import { useNavigation } from '@/context/NavigationContext';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Compass, Sparkles, Navigation } from 'lucide-react';
+import { Sparkles, Navigation } from 'lucide-react';
 
 export default function Home() {
   const { currentPlanet, travelState } = useNavigation();

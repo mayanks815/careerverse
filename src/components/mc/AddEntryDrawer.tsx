@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Save, Plus } from 'lucide-react';
+import { X, Plus } from 'lucide-react';
 
 interface AddEntryDrawerProps {
   isOpen: boolean;

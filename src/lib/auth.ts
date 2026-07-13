@@ -46,7 +46,7 @@ export function decryptSession(token: string): SessionPayload | null {
       return parsed as SessionPayload;
     }
     return null;
-  } catch (error) {
+  } catch {
     return null;
   }
 }

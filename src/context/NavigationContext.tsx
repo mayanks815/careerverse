@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useContent } from '@/context/ContentProvider';
-import { CareerverseData, mockCareerverseData } from '@/lib/mockData';
+import { CareerverseData } from '@/lib/mockData';
 import { 
   playSynthClick, 
   playSynthWarp, 

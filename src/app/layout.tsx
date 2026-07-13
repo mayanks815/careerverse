@@ -45,6 +45,27 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full select-none">
       <body className={`${geistSans.variable} ${geistMono.variable} min-h-full overflow-hidden bg-space-black text-slate-100 antialiased`}>
+        {/* SEO Structured Person Schema */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              "@context": "https://schema.org",
+              "@type": "Person",
+              "name": "Aditi Mallick",
+              "jobTitle": "Software Engineer",
+              "description": "Software Engineer specializing in Enterprise Desktop Automation, WPF, ASP.NET Core, and React.",
+              "knowsAbout": [
+                "Software Engineering",
+                "WPF Developer",
+                "ASP.NET Core",
+                "Automation Engineering",
+                "React Developer",
+                "Next.js"
+              ]
+            })
+          }}
+        />
         <ContentProvider>
           <NavigationProvider>
             <ErrorBoundary fallbackTitle="Core Navigation Terminal">

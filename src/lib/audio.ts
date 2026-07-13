@@ -189,7 +189,7 @@ export function stopAmbientSpaceDrone() {
       ambientGain.disconnect();
       ambientGain = null;
     }
-  } catch (err) {
+  } catch {
     // silent catch
   }
 }

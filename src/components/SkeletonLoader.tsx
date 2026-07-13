@@ -1,19 +1,19 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Loader2, ShieldCheck, Compass } from 'lucide-react';
+import { Loader2, ShieldCheck } from 'lucide-react';
+
+const TIPS = [
+  "Warm-starting warp injectors...",
+  "Aligning asteroid coordinate belts...",
+  "Calibrating system HUD dashboard...",
+  "Establishing encrypted Firebase uplink...",
+  "Decrypting orbital terminal nodes..."
+];
 
 export default function SkeletonLoader() {
   const [percent, setPercent] = useState(0);
   const [tipIndex, setTipIndex] = useState(0);
-
-  const tips = [
-    "Warm-starting warp injectors...",
-    "Aligning asteroid coordinate belts...",
-    "Calibrating system HUD dashboard...",
-    "Establishing encrypted Firebase uplink...",
-    "Decrypting orbital terminal nodes..."
-  ];
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -27,7 +27,7 @@ export default function SkeletonLoader() {
     }, 150);
 
     const tipInterval = setInterval(() => {
-      setTipIndex(prev => (prev + 1) % tips.length);
+      setTipIndex(prev => (prev + 1) % TIPS.length);
     }, 800);
 
     return () => {
@@ -56,7 +56,7 @@ export default function SkeletonLoader() {
             CONNECTING TO CAREERVERSE
           </h2>
           <div className="text-[10px] font-mono text-neon-blue h-4 overflow-hidden">
-            {tips[tipIndex]}
+            {TIPS[tipIndex]}
           </div>
         </div>
 

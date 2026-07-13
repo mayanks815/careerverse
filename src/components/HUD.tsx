@@ -14,9 +14,7 @@ import {
   Briefcase, 
   Award, 
   Send,
-  Loader2,
-  Sliders,
-  Sparkles
+  Loader2
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -75,8 +73,9 @@ export default function HUD() {
                           e.stopPropagation();
                           cancelTravel();
                         }}
-                        className="ml-2 px-1.5 py-0.5 bg-red-950/40 hover:bg-red-900/60 border border-red-900/40 hover:border-red-700/60 text-[9px] font-bold text-red-400 hover:text-white rounded uppercase tracking-wider transition-colors cursor-pointer"
+                        className="ml-2 px-1.5 py-0.5 bg-red-950/40 hover:bg-red-900/60 border border-red-900/40 hover:border-red-700/60 text-[9px] font-bold text-red-400 hover:text-white rounded uppercase tracking-wider transition-colors cursor-pointer focus:ring-1 focus:ring-red-500 focus:outline-none"
                         title="Cancel flight trajectory"
+                        aria-label="Abort travel sequence"
                       >
                         Abort
                       </button>
@@ -102,8 +101,10 @@ export default function HUD() {
             {/* Micro Diagnostic Console Dot */}
             <button
               onClick={() => setShowConsole(!showConsole)}
-              className="relative p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer"
+              className="relative p-1.5 hover:bg-zinc-800 rounded-lg text-zinc-400 hover:text-white transition-all cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
               title="Telemetry Diagnostics"
+              aria-label="Toggle Telemetry Logs"
+              aria-expanded={showConsole}
             >
               <Activity className="w-3.5 h-3.5" />
               {systemLogs.length > 0 && !isLoading && (
@@ -139,7 +140,8 @@ export default function HUD() {
         <div className="flex items-center gap-1.5 bg-zinc-950/75 border border-zinc-800/80 backdrop-blur-md p-1.5 rounded-xl shadow-xl">
           <Link 
             href="/mission-control" 
-            className="text-[11px] font-semibold text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-all font-sans"
+            className="text-[11px] font-semibold text-zinc-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-zinc-800 transition-all font-sans focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            aria-label="Enter Mission Control dashboard"
           >
             Mission Control
           </Link>
@@ -149,8 +151,9 @@ export default function HUD() {
           {/* Sound Toggle */}
           <button
             onClick={() => setSoundMuted(!soundMuted)}
-            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all cursor-pointer"
+            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
             title={soundMuted ? 'Unmute Audio' : 'Mute Audio'}
+            aria-label={soundMuted ? 'Unmute Audio' : 'Mute Audio'}
           >
             {soundMuted ? <VolumeX className="w-3.5 h-3.5 text-zinc-500" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
           </button>
@@ -158,8 +161,9 @@ export default function HUD() {
           {/* Motion Toggle */}
           <button
             onClick={() => setReducedMotion(!reducedMotion)}
-            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all cursor-pointer"
+            className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg transition-all cursor-pointer focus:ring-2 focus:ring-blue-500 focus:outline-none"
             title={reducedMotion ? 'Enable Immersive Flight' : 'Enable Reduced Motion'}
+            aria-label={reducedMotion ? 'Enable Immersive Flight' : 'Enable Reduced Motion'}
           >
             {reducedMotion ? <EyeOff className="w-3.5 h-3.5 text-zinc-500" /> : <Eye className="w-3.5 h-3.5 text-emerald-400" />}
           </button>
@@ -171,14 +175,18 @@ export default function HUD() {
         {currentPlanet !== 'space' && travelState === 'idle' && (
           <button
             onClick={() => router.push('/')}
-            className="px-4 py-2 rounded-full border border-zinc-800 bg-zinc-950/90 hover:bg-zinc-900 text-xs font-semibold text-zinc-200 cursor-pointer transition-all shadow-xl flex items-center gap-1.5"
+            className="px-4 py-2 rounded-full border border-zinc-800 bg-zinc-950/90 hover:bg-zinc-900 text-xs font-semibold text-zinc-200 cursor-pointer transition-all shadow-xl flex items-center gap-1.5 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+            aria-label="Return to Galactic Space Orbit"
           >
             <Compass className="w-3.5 h-3.5 text-blue-400" />
             Return to Orbit
           </button>
         )}
 
-        <div className="bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md p-1.5 rounded-2xl flex items-center justify-center gap-1 max-w-full overflow-x-auto shadow-2xl">
+        <nav 
+          className="bg-zinc-950/80 border border-zinc-800/80 backdrop-blur-md p-1.5 rounded-2xl flex items-center justify-center gap-1 max-w-full overflow-x-auto shadow-2xl"
+          aria-label="Galactic Systems Directory"
+        >
           {planetsList.map((p) => {
             const isActive = currentPlanet === p.id || targetPlanet === p.id;
             return (
@@ -190,14 +198,16 @@ export default function HUD() {
                   isActive 
                     ? 'bg-zinc-800 text-white border-zinc-700 shadow-inner'
                     : 'bg-transparent text-zinc-400 border-transparent hover:text-white hover:bg-zinc-900'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                } disabled:opacity-50 disabled:cursor-not-allowed focus:ring-2 focus:ring-blue-500 focus:outline-none`}
+                aria-label={`Travel to ${p.label} system`}
+                aria-current={isActive ? 'location' : undefined}
               >
                 {p.icon}
                 <span>{p.label}</span>
               </button>
             );
           })}
-        </div>
+        </nav>
       </div>
       
     </div>

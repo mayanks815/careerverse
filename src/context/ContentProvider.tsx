@@ -40,29 +40,35 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
       await ProfileRepository.create({ ...mockCareerverseData.profile });
 
       for (let i = 0; i < mockCareerverseData.education.length; i++) {
-        const { id: _id, ...rest } = mockCareerverseData.education[i];
-        await EducationRepository.create({ ...rest, display_order: i + 1 });
+        const dataRest = { ...mockCareerverseData.education[i] };
+        delete (dataRest as any).id;
+        await EducationRepository.create({ ...dataRest, display_order: i + 1 });
       }
 
       for (let i = 0; i < mockCareerverseData.skills.length; i++) {
-        const { id: _id, ...rest } = mockCareerverseData.skills[i];
-        await SkillsRepository.create({ ...rest, display_order: i + 1 });
+        const dataRest = { ...mockCareerverseData.skills[i] };
+        delete (dataRest as any).id;
+        await SkillsRepository.create({ ...dataRest, display_order: i + 1 });
       }
 
       for (let i = 0; i < mockCareerverseData.experience.length; i++) {
-        const { id: _id, ...rest } = mockCareerverseData.experience[i];
-        await ExperienceRepository.create({ ...rest, display_order: i + 1 });
+        const dataRest = { ...mockCareerverseData.experience[i] };
+        delete (dataRest as any).id;
+        await ExperienceRepository.create({ ...dataRest, display_order: i + 1 });
       }
 
       for (let i = 0; i < mockCareerverseData.achievements.length; i++) {
-        const { id: _id, ...rest } = mockCareerverseData.achievements[i];
-        await AchievementsRepository.create({ ...rest, display_order: i + 1 });
+        const dataRest = { ...mockCareerverseData.achievements[i] };
+        delete (dataRest as any).id;
+        await AchievementsRepository.create({ ...dataRest, display_order: i + 1 });
       }
 
-      const { id: _cid, ...contactRest } = mockCareerverseData.contact;
+      const contactRest = { ...mockCareerverseData.contact };
+      delete (contactRest as any).id;
       await ContactsRepository.create({ ...contactRest });
 
-      const { id: _sid, ...settingsRest } = mockCareerverseData.settings;
+      const settingsRest = { ...mockCareerverseData.settings };
+      delete (settingsRest as any).id;
       await SettingsRepository.create({ ...settingsRest });
 
       console.info('[ContentProvider] Auto-seed complete. onSnapshot will refresh UI automatically.');

@@ -37,7 +37,7 @@ function getLocalFallback(): AnalyticsData {
   if (typeof window === 'undefined') return defaultMockAnalytics;
   const stored = localStorage.getItem('careerverse_analytics');
   if (stored) {
-    try { return JSON.parse(stored); } catch (e) {}
+    try { return JSON.parse(stored); } catch {}
   }
   return defaultMockAnalytics;
 }

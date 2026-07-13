@@ -13,7 +13,6 @@ import * as ContactsRepository from '@/lib/repositories/contacts';
 import * as SettingsRepository from '@/lib/repositories/settings';
 import { mockCareerverseData } from '@/lib/mockData';
 import { 
-  ShieldAlert, 
   Database, 
   Lock, 
   Globe, 
@@ -28,9 +27,7 @@ import {
   Eye, 
   EyeOff, 
   LogOut,
-  Sparkles,
   RefreshCw,
-  Link as LinkIcon,
   Upload,
   ChevronRight,
   Sliders,
@@ -105,7 +102,7 @@ export default function MissionControl() {
   const [activeTab, setActiveTab] = useState<TabId>('profile');
   const [saveStatus, setSaveStatus] = useState<'idle' | 'saving' | 'saved' | 'error'>('idle');
   const [seedStatus, setSeedStatus] = useState<'idle' | 'seeding' | 'seeded' | 'error'>('idle');
-  const [uploadStatus, setUploadStatus] = useState<{ avatar: 'idle' | 'uploading' | 'done' | 'error'; resume: 'idle' | 'uploading' | 'done' | 'error' }>({ avatar: 'idle', resume: 'idle' });
+
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
 
@@ -241,14 +238,14 @@ export default function MissionControl() {
         } else {
           setIsAuthorized(false);
         }
-      } catch (err) {
+      } catch {
         setIsAuthorized(false);
       }
     };
     checkAuth();
   }, []);
 
-  const handleUnlock = async () => {
+  const handleUnlock = React.useCallback(async () => {
     if (pin.length !== 4) {
       setPinError('PIN must be 4 digits.');
       return;
@@ -268,12 +265,12 @@ export default function MissionControl() {
         setPinError('Invalid decryption code.');
         setPin('');
       }
-    } catch (err) {
+    } catch {
       setPinError('Uplink error.');
     } finally {
       setIsVerifyingPin(false);
     }
-  };
+  }, [pin]);
 
   const handleLogout = async () => {
     try {
@@ -428,6 +425,16 @@ export default function MissionControl() {
     // 5. Profile name validation
     if (!profileState.name.trim()) {
       errors.profileName = "Profile name cannot be empty.";
+    }
+
+    // 6. Settings numeric parameters validation
+    const wSpeed = Number(settingsState.warpSpeed);
+    const lDuration = Number(settingsState.landingDuration);
+    if (settingsState.warpSpeed !== undefined && (isNaN(wSpeed) || wSpeed < 0.1 || wSpeed > 10.0)) {
+      errors.warpSpeed = "Warp speed duration must be a number between 0.1 and 10 seconds.";
+    }
+    if (settingsState.landingDuration !== undefined && (isNaN(lDuration) || lDuration < 0.1 || lDuration > 10.0)) {
+      errors.landingDuration = "Landing speed duration must be a number between 0.1 and 10 seconds.";
     }
 
     setValidationErrors(errors);
@@ -603,8 +610,9 @@ export default function MissionControl() {
         }
       }
       for (let i = 0; i < mockCareerverseData.education.length; i++) {
-        const { id: _id, ...rest } = mockCareerverseData.education[i];
-        await EducationRepository.create({ ...rest, display_order: i + 1 });
+        const dataRest = { ...mockCareerverseData.education[i] };
+        delete (dataRest as any).id;
+        await EducationRepository.create({ ...dataRest, display_order: i + 1 });
       }
 
       // 3. Reset Skills
@@ -616,8 +624,9 @@ export default function MissionControl() {
         }
       }
       for (let i = 0; i < mockCareerverseData.skills.length; i++) {
-        const { id: _id, ...rest } = mockCareerverseData.skills[i];
-        await SkillsRepository.create({ ...rest, display_order: i + 1 });
+        const dataRest = { ...mockCareerverseData.skills[i] };
+        delete (dataRest as any).id;
+        await SkillsRepository.create({ ...dataRest, display_order: i + 1 });
       }
 
       // 4. Reset Experience
@@ -629,8 +638,9 @@ export default function MissionControl() {
         }
       }
       for (let i = 0; i < mockCareerverseData.experience.length; i++) {
-        const { id: _id, ...rest } = mockCareerverseData.experience[i];
-        await ExperienceRepository.create({ ...rest, display_order: i + 1 });
+        const dataRest = { ...mockCareerverseData.experience[i] };
+        delete (dataRest as any).id;
+        await ExperienceRepository.create({ ...dataRest, display_order: i + 1 });
       }
 
       // 5. Reset Achievements
@@ -642,8 +652,9 @@ export default function MissionControl() {
         }
       }
       for (let i = 0; i < mockCareerverseData.achievements.length; i++) {
-        const { id: _id, ...rest } = mockCareerverseData.achievements[i];
-        await AchievementsRepository.create({ ...rest, display_order: i + 1 });
+        const dataRest = { ...mockCareerverseData.achievements[i] };
+        delete (dataRest as any).id;
+        await AchievementsRepository.create({ ...dataRest, display_order: i + 1 });
       }
 
       // 6. Reset Contacts
@@ -654,7 +665,8 @@ export default function MissionControl() {
           await ContactsRepository.remove(c.id);
         }
       }
-      const { id: _cid, ...contactRest } = mockCareerverseData.contact;
+      const contactRest = { ...mockCareerverseData.contact };
+      delete (contactRest as any).id;
       await ContactsRepository.create({ ...contactRest });
 
       // 7. Reset Settings
@@ -665,7 +677,8 @@ export default function MissionControl() {
           await SettingsRepository.remove(s.id);
         }
       }
-      const { id: _sid, ...settingsRest } = mockCareerverseData.settings;
+      const settingsRest = { ...mockCareerverseData.settings };
+      delete (settingsRest as any).id;
       await SettingsRepository.create({ ...settingsRest });
 
       setSeedStatus('seeded');
@@ -816,7 +829,8 @@ export default function MissionControl() {
 
     // 2. Put back into Firestore
     try {
-      const { id, ...dataRest } = item;
+      const dataRest = { ...item };
+      delete (dataRest as any).id;
       if (type === 'education') {
         await EducationRepository.create({ ...dataRest });
       } else if (type === 'skills') {
@@ -839,7 +853,8 @@ export default function MissionControl() {
       if (type === 'education') {
         const orig = eduState.find(x => x.id === id);
         if (orig) {
-          const { id: _, ...dataRest } = orig;
+          const dataRest = { ...orig };
+          delete (dataRest as any).id;
           const newRecord = { ...dataRest, degree: `${orig.degree} (Copy)`, display_order: eduState.length + 1 };
           const newId = await EducationRepository.create(newRecord);
           setEduState(prev => [...prev, { ...newRecord, id: newId }]);
@@ -847,7 +862,8 @@ export default function MissionControl() {
       } else if (type === 'skills') {
         const orig = skillsState.find(x => x.id === id);
         if (orig) {
-          const { id: _, ...dataRest } = orig;
+          const dataRest = { ...orig };
+          delete (dataRest as any).id;
           const newRecord = { ...dataRest, skill_name: `${orig.skill_name} (Copy)`, display_order: skillsState.length + 1 };
           const newId = await SkillsRepository.create(newRecord);
           setSkillsState(prev => [...prev, { ...newRecord, id: newId }]);
@@ -855,7 +871,8 @@ export default function MissionControl() {
       } else if (type === 'experience') {
         const orig = expState.find(x => x.id === id);
         if (orig) {
-          const { id: _, ...dataRest } = orig;
+          const dataRest = { ...orig };
+          delete (dataRest as any).id;
           const newRecord = { ...dataRest, role: `${orig.role} (Copy)`, display_order: expState.length + 1 };
           const newId = await ExperienceRepository.create(newRecord);
           setExpState(prev => [...prev, { ...newRecord, id: newId }]);
@@ -863,7 +880,8 @@ export default function MissionControl() {
       } else if (type === 'achievements') {
         const orig = achState.find(x => x.id === id);
         if (orig) {
-          const { id: _, ...dataRest } = orig;
+          const dataRest = { ...orig };
+          delete (dataRest as any).id;
           const newRecord = { ...dataRest, title: `${orig.title} (Copy)`, display_order: achState.length + 1 };
           const newId = await AchievementsRepository.create(newRecord);
           setAchState(prev => [...prev, { ...newRecord, id: newId }]);
@@ -901,7 +919,7 @@ export default function MissionControl() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [showPinDialog, pin, isVerifyingPin]);
+  }, [showPinDialog, pin, isVerifyingPin, handleUnlock]);
 
   const triggerAddDrawer = () => {
     if (activeTab === 'education' || activeTab === 'experience' || activeTab === 'achievements') {
@@ -1207,13 +1225,13 @@ export default function MissionControl() {
       </header>
 
       {/* 2. THREE-COLUMN DESKTOP WORKSPACE LAYOUT (Scroll independent, no cover/overlap) */}
-      <div className="flex flex-1 overflow-hidden h-[calc(100vh-4rem)]">
+      <div className="flex flex-col md:flex-row flex-1 overflow-hidden h-[calc(100vh-4rem)]">
         
-        {/* COLUMN 1: NAVIGATION SIDEBAR (Scrolls independently) */}
-        <aside className="w-64 border-r border-zinc-850 bg-zinc-950 p-5 space-y-6 shrink-0 flex flex-col justify-between overflow-y-auto">
-          <div className="space-y-2">
-            <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-3">Sections</div>
-            <div className="space-y-1">
+        {/* COLUMN 1: NAVIGATION SIDEBAR (Scrolls independently, horizontal swipe on mobile) */}
+        <aside className="w-full md:w-64 border-b md:border-b-0 md:border-r border-zinc-850 bg-zinc-950 p-3 md:p-5 flex flex-row md:flex-col justify-between items-center md:items-stretch overflow-x-auto md:overflow-y-auto shrink-0 gap-4 md:gap-6 select-none scrollbar-none">
+          <div className="flex flex-row md:flex-col items-center md:items-stretch gap-2 w-max md:w-auto shrink-0">
+            <div className="hidden md:block text-[10px] font-bold text-zinc-500 uppercase tracking-widest px-3 mb-1">Sections</div>
+            <div className="flex flex-row md:flex-col gap-1 w-max md:w-auto shrink-0">
               {[
                 { id: 'profile', label: 'Admin Profile', icon: <Globe className="w-4 h-4" /> },
                 { id: 'education', label: 'Education Systems', icon: <BookOpen className="w-4 h-4" /> },
@@ -1228,25 +1246,25 @@ export default function MissionControl() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as TabId)}
-                  className={`w-full px-3.5 py-3 rounded-xl text-left flex items-center justify-between font-semibold transition-all cursor-pointer ${
+                  className={`px-3 py-2 md:px-3.5 md:py-3 rounded-xl text-left flex items-center justify-between font-semibold transition-all cursor-pointer ${
                     activeTab === tab.id
                       ? 'bg-zinc-900 text-white border border-zinc-800 shadow-sm'
                       : 'text-zinc-500 border border-transparent hover:bg-zinc-900/50 hover:text-zinc-300'
                   }`}
                 >
-                  <span className="flex items-center gap-3 text-xs font-medium">
+                  <span className="flex items-center gap-2 md:gap-3 text-xs font-medium">
                     {tab.icon}
-                    {tab.label}
+                    <span className="whitespace-nowrap">{tab.label}</span>
                   </span>
-                  {activeTab === tab.id && <ChevronRight className="w-3.5 h-3.5 text-zinc-400" />}
+                  {activeTab === tab.id && <ChevronRight className="hidden md:block w-3.5 h-3.5 text-zinc-400" />}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Seed Info Box */}
+          {/* Seed Info Box (Hidden on Mobile) */}
           {isFirebaseConfigured && (
-            <div className="bg-zinc-900/40 border border-zinc-850 p-4 rounded-2xl space-y-3">
+            <div className="hidden md:block bg-zinc-900/40 border border-zinc-850 p-4 rounded-2xl space-y-3">
               <div className="text-[10px] font-bold text-zinc-400 uppercase tracking-widest">Database Seed</div>
               <p className="text-[11px] text-zinc-500 leading-normal font-light">Seeding Firestore populates default mock entries in empty collections.</p>
               <button
@@ -1301,9 +1319,21 @@ export default function MissionControl() {
                   <input 
                     type="text" 
                     value={profileState.name}
-                    onChange={(e) => setProfileState({ ...profileState, name: e.target.value })}
-                    className="w-full cms-input"
+                    onChange={(e) => {
+                      setProfileState({ ...profileState, name: e.target.value });
+                      if (validationErrors.profileName) {
+                        setValidationErrors(prev => {
+                          const next = { ...prev };
+                          delete next.profileName;
+                          return next;
+                        });
+                      }
+                    }}
+                    className={`w-full cms-input ${validationErrors.profileName ? 'border-rose-500 focus:ring-rose-500/20' : ''}`}
                   />
+                  {validationErrors.profileName && (
+                    <span className="text-[11px] text-rose-450 font-medium block mt-1">{validationErrors.profileName}</span>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-zinc-355">Professional Title</label>
@@ -1356,11 +1386,11 @@ export default function MissionControl() {
                         <button
                           type="button"
                           onClick={() => avatarInputRef.current?.click()}
-                          disabled={uploadStatus.avatar === 'uploading'}
+                          disabled={storageProgress !== null}
                           className="px-3.5 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0"
                         >
                           <Upload className="w-3.5 h-3.5" />
-                          {uploadStatus.avatar === 'uploading' ? '...' : 'Upload'}
+                          {storageProgress !== null ? '...' : 'Upload'}
                         </button>
                       </>
                     ) : (
@@ -1391,11 +1421,11 @@ export default function MissionControl() {
                         <button
                           type="button"
                           onClick={() => resumeInputRef.current?.click()}
-                          disabled={uploadStatus.resume === 'uploading'}
+                          disabled={storageProgress !== null}
                           className="px-3.5 bg-zinc-900 border border-zinc-800 text-zinc-300 hover:text-white rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50 shrink-0"
                         >
                           <Upload className="w-3.5 h-3.5" />
-                          {uploadStatus.resume === 'uploading' ? '...' : 'Upload'}
+                          {storageProgress !== null ? '...' : 'Upload'}
                         </button>
                       </>
                     ) : (
@@ -1929,10 +1959,23 @@ export default function MissionControl() {
                     step="0.1"
                     min="0.1"
                     max="10.0"
-                    value={settingsState.warpSpeed ?? 1.5}
-                    onChange={(e) => setSettingsState({ ...settingsState, warpSpeed: parseFloat(e.target.value) })}
-                    className="w-full cms-input"
+                    value={isNaN(settingsState.warpSpeed) ? '' : (settingsState.warpSpeed ?? 1.5)}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setSettingsState({ ...settingsState, warpSpeed: val });
+                      if (validationErrors.warpSpeed) {
+                        setValidationErrors(prev => {
+                          const next = { ...prev };
+                          delete next.warpSpeed;
+                          return next;
+                        });
+                      }
+                    }}
+                    className={`w-full cms-input ${validationErrors.warpSpeed ? 'border-rose-500 focus:ring-rose-500/20' : ''}`}
                   />
+                  {validationErrors.warpSpeed && (
+                    <span className="text-[11px] text-rose-450 font-medium block mt-1">{validationErrors.warpSpeed}</span>
+                  )}
                 </div>
                 <div className="space-y-2">
                   <label className="text-xs font-semibold text-zinc-350">Landing Speed Duration (Seconds)</label>
@@ -1941,10 +1984,23 @@ export default function MissionControl() {
                     step="0.1"
                     min="0.1"
                     max="10.0"
-                    value={settingsState.landingDuration ?? 1.0}
-                    onChange={(e) => setSettingsState({ ...settingsState, landingDuration: parseFloat(e.target.value) })}
-                    className="w-full cms-input"
+                    value={isNaN(settingsState.landingDuration) ? '' : (settingsState.landingDuration ?? 1.0)}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      setSettingsState({ ...settingsState, landingDuration: val });
+                      if (validationErrors.landingDuration) {
+                        setValidationErrors(prev => {
+                          const next = { ...prev };
+                          delete next.landingDuration;
+                          return next;
+                        });
+                      }
+                    }}
+                    className={`w-full cms-input ${validationErrors.landingDuration ? 'border-rose-500 focus:ring-rose-500/20' : ''}`}
                   />
+                  {validationErrors.landingDuration && (
+                    <span className="text-[11px] text-rose-450 font-medium block mt-1">{validationErrors.landingDuration}</span>
+                  )}
                 </div>
               </div>
 
