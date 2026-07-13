@@ -1,0 +1,38 @@
+# dependencies
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# next.js
+.next/
+out/
+dist/
+
+# testing & coverage
+coverage/
+
+# env files (NEVER COMMIT SECRETS)
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env*.local
+
+# vercel
+.vercel/
+
+# debug logs
+firebase-debug.log
+firestore-debug.log
+*.log
+
+# system files
+.DS_Store
+Thumbs.db
+*.tsbuildinfo
+next-env.d.ts

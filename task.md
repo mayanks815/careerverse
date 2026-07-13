@@ -1,0 +1,13 @@
+- [x] Install `firebase` npm dependency
+- [x] Create `src/lib/firebase.ts` (Firebase app and db initialization)
+- [x] Create repository modules under `src/lib/repositories/`
+  - [x] profile.ts
+  - [x] education.ts
+  - [x] skills.ts
+  - [x] experience.ts
+  - [x] achievements.ts
+  - [x] contacts.ts
+- [x] Modify `src/context/NavigationContext.tsx` to set up real-time `onSnapshot` subscriptions
+- [x] Modify `src/app/mission-control/page.tsx` to use repository modules for all database updates
+- [x] Modify `src/components/PlanetPanel.tsx` to filter arrays by `is_visible` client-side
+- [/] Run build and verify functionality

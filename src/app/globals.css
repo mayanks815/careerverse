@@ -1,0 +1,150 @@
+@import "tailwindcss";
+
+@theme {
+  --color-space-black: #020205;
+  --color-glass-bg: rgba(6, 6, 12, 0.45);
+  --color-glass-border: rgba(255, 255, 255, 0.08);
+  --color-neon-blue: #3b82f6;      /* Premium blue */
+  --color-neon-purple: #8b5cf6;    /* Premium purple */
+  --color-neon-emerald: #10b981;   /* Premium green */
+  --color-neon-gold: #f59e0b;     /* Premium gold */
+  --color-neon-rose: #ef4444;     /* Premium red */
+  
+  /* SaaS color palette */
+  --color-zinc-950: #09090b;
+  --color-zinc-900: #18181b;
+  --color-zinc-800: #27272a;
+  --color-zinc-700: #3f3f46;
+  --color-zinc-600: #52525b;
+  --color-zinc-500: #71717a;
+  --color-zinc-400: #a1a1aa;
+  --color-zinc-300: #d4d4d8;
+  --color-zinc-200: #e4e4e7;
+  --color-zinc-100: #f4f4f5;
+  --color-zinc-50: #fafafa;
+}
+
+:root {
+  --background: #09090b;
+  --foreground: #fafafa;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.16);
+}
+
+body {
+  background-color: var(--background);
+  color: var(--foreground);
+  overflow-x: hidden;
+  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+/* Premium Glow Utilities */
+.glow-blue {
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.15);
+  border-color: rgba(59, 130, 246, 0.2) !important;
+}
+
+.glow-purple {
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.15);
+  border-color: rgba(139, 92, 246, 0.2) !important;
+}
+
+.glow-emerald {
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Scanline / Grid HUD effect - applied ONLY to ThreeJS background */
+.space-scanline::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0; left: 0; bottom: 0; right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
+              linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+  z-index: 1;
+  background-size: 100% 3px, 9px 100%;
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+/* Star twinkling animations */
+@keyframes twinkle {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.9; }
+}
+
+.animate-twinkle {
+  animation: twinkle 4s infinite ease-in-out;
+}
+
+/* Planet orbit rotating lines */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 120s linear infinite;
+}
+
+/* Premium SaaS Card (Vercel/Linear style) */
+.saas-card {
+  background: rgba(24, 24, 27, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.saas-card:hover {
+  background: rgba(24, 24, 27, 0.85);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Input Fields (SaaS Style) */
+.cms-input {
+  background: rgba(9, 9, 11, 0.5);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: #fff;
+  font-size: 13px;
+  line-height: 20px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+}
+
+.cms-input:focus {
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.05);
+  outline: none;
+}
+
+.cms-input::placeholder {
+  color: #52525b;
+}
+
+/* Select Styling */
+.cms-select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%23a1a1aa' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='M6 8l4 4 4-4'/%3e%3c/svg%3e");
+  background-position: right 10px center;
+  background-repeat: no-repeat;
+  background-size: 18px;
+  padding-right: 32px;
+}
