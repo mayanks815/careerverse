@@ -14,6 +14,7 @@ export const PLANET_POSITIONS: Record<PlanetId, [number, number, number]> = {
   skills: [10, -2, 7],
   experience: [-6, -4, 11],
   achievements: [12, 3, -9],
+  resume: [6, 4, -11],
   contact: [0, 5, -13],
 };
 
@@ -481,6 +482,42 @@ function AchievementPlanet() {
   );
 }
 
+// 7.5. Resume Planet (Cyan Theme) with atmosphere
+function ResumePlanet() {
+  const planetRef = useRef<THREE.Mesh>(null);
+
+  const timer = useMemo(() => new THREE.Timer(), []);
+  useFrame((state) => {
+    timer.update(state.clock.getElapsedTime());
+    const elapsed = timer.getElapsed();
+    if (planetRef.current) {
+      planetRef.current.rotation.y = elapsed * 0.12;
+      planetRef.current.rotation.x = elapsed * 0.02;
+    }
+  });
+
+  return (
+    <group position={PLANET_POSITIONS.resume}>
+      {/* Atmospheric Glow */}
+      <Atmosphere radius={0.9} color="#06b6d4" />
+
+      <mesh ref={planetRef}>
+        <sphereGeometry args={[0.7, 32, 32]} />
+        <meshStandardMaterial 
+          color="#083344" 
+          emissive="#06b6d4"
+          emissiveIntensity={0.5}
+          metalness={0.8} 
+          roughness={0.2} 
+        />
+      </mesh>
+
+      {/* Local lighting */}
+      <pointLight color="#06b6d4" intensity={1.5} distance={6} decay={1.5} />
+    </group>
+  );
+}
+
 // 8. Contact Satellite (Rose Theme) with atmosphere
 function ContactSatellite() {
   const satelliteRef = useRef<THREE.Group>(null);
@@ -696,6 +733,7 @@ function UniverseScene() {
       <SkillsPlanet />
       <ExperiencePlanet />
       <AchievementPlanet />
+      <ResumePlanet />
       <ContactSatellite />
 
       {/* Spaceship */}

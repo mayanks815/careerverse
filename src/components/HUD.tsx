@@ -14,7 +14,8 @@ import {
   Briefcase, 
   Award, 
   Send,
-  Loader2
+  Loader2,
+  FileText
 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
@@ -48,6 +49,7 @@ export default function HUD() {
     { id: 'skills', label: 'Skills', icon: <Cpu className="w-3.5 h-3.5" />, color: 'border-violet-500/40 text-violet-400' },
     { id: 'experience', label: 'Experience', icon: <Briefcase className="w-3.5 h-3.5" />, color: 'border-blue-500/40 text-blue-400' },
     { id: 'achievements', label: 'Achievements', icon: <Award className="w-3.5 h-3.5" />, color: 'border-amber-500/40 text-amber-400' },
+    { id: 'resume', label: 'Resume', icon: <FileText className="w-3.5 h-3.5" />, color: 'border-teal-500/40 text-teal-400' },
     { id: 'contact', label: 'Contact', icon: <Send className="w-3.5 h-3.5" />, color: 'border-rose-500/40 text-rose-400' }
   ];
 

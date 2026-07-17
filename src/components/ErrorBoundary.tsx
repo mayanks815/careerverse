@@ -24,7 +24,7 @@ export default class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error("Uncaught error caught by Careerverse ErrorBoundary:", error, errorInfo);
+    console.error("Uncaught error caught by System ErrorBoundary:", error, errorInfo);
   }
 
   public render() {

@@ -113,7 +113,6 @@ export async function recordVisitor(): Promise<void> {
     }, { merge: true });
   } catch (err) {
     console.error("Error recording visitor:", err);
-    throw err;
   }
 }
 
@@ -132,7 +131,6 @@ export async function recordPlanetVisit(planet: string): Promise<void> {
     }, { merge: true });
   } catch (err) {
     console.error("Error recording planet visit:", err);
-    throw err;
   }
 }
 
@@ -151,7 +149,6 @@ export async function recordResumeDownload(): Promise<void> {
     }, { merge: true });
   } catch (err) {
     console.error("Error recording resume download:", err);
-    throw err;
   }
 }
 
@@ -170,7 +167,6 @@ export async function recordContactClick(): Promise<void> {
     }, { merge: true });
   } catch (err) {
     console.error("Error recording contact click:", err);
-    throw err;
   }
 }
 
@@ -202,7 +198,6 @@ export async function recordSessionDuration(seconds: number): Promise<void> {
     }, { merge: true });
   } catch (err) {
     console.error("Error recording session duration:", err);
-    throw err;
   }
 }
 

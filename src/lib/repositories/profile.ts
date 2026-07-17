@@ -104,7 +104,19 @@ export async function update(id: string, data: Partial<Profile>): Promise<void> 
     return;
   }
   try {
-    const docRef = doc(db!, COLLECTION_NAME, id);
+    let resolvedId = id;
+    if (!resolvedId || resolvedId === 'default' || resolvedId.startsWith('mock-')) {
+      const q = query(collection(db!, COLLECTION_NAME), orderBy('displayOrder', 'asc'));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        resolvedId = snap.docs[0].id;
+      } else {
+        await create(data as Omit<Profile, 'id'>);
+        return;
+      }
+    }
+
+    const docRef = doc(db!, COLLECTION_NAME, resolvedId);
     const updateData: any = {};
     if (data.name !== undefined) updateData.name = data.name;
     if (data.title !== undefined) updateData.title = data.title;

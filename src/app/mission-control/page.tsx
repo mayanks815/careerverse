@@ -1142,7 +1142,7 @@ export default function MissionControl() {
             <Database className="w-4 h-4 text-blue-500" />
           </div>
           <div className="flex items-center gap-2">
-            <span className="text-sm font-bold text-white tracking-tight">Careerverse Control</span>
+            <span className="text-sm font-bold text-white tracking-tight">Mission Control</span>
             <span className="text-zinc-700 text-xs">/</span>
             <span className="text-xs font-semibold text-zinc-400 capitalize">{activeTab}</span>
           </div>

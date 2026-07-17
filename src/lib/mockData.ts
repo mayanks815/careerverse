@@ -91,8 +91,8 @@ export const mockProfile: Profile = {
   title: "Software Engineer",
   tagline: "Engineering robust enterprise desktop architectures, high-performance backend systems, and automated pipelines.",
   bio: "Software Engineer specializing in enterprise software development, desktop applications, backend systems, PyWinAuto/Selenium automation, and modern web architectures. Experienced in WPF/MVVM design, .NET/ASP.NET Core architectures, database management, and process migration. Focused on building high-performance solutions that drive business efficiency and reduce operational costs.",
-  resume_url: "#",
-  avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?fit=crop&w=300&h=300&q=80",
+  resume_url: "https://drive.google.com/file/d/1V-Mt0mwd0c8uTQqYpGLs1uuO4vJp_9iu/view?usp=sharing",
+  avatar: "/profile.jpg",
   is_visible: true,
   display_order: 1
 };

@@ -6,12 +6,12 @@ import { useRouter, usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   FileText, 
-  ArrowRight, 
   X,
   Mail,
   Award,
   ShieldCheck,
-  ExternalLink
+  ExternalLink,
+  Download
 } from 'lucide-react';
 import { track } from '@vercel/analytics';
 import { recordResumeDownload, recordContactClick } from '@/lib/repositories/analytics';
@@ -41,7 +41,7 @@ export default function PlanetPanel() {
     const match = pathname?.match(/\/planet\/([a-z]+)/);
     if (match) {
       const p = match[1] as PlanetId;
-      const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'contact'];
+      const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'resume', 'contact'];
       if (validPlanets.includes(p)) return p;
     }
     return null;
@@ -53,6 +53,17 @@ export default function PlanetPanel() {
   const showPanel = activePlanet !== null && activePlanet !== 'space' && travelState === 'idle';
 
   const panelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (showPanel) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [showPanel]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -150,35 +161,6 @@ export default function PlanetPanel() {
             <motion.div variants={itemVariants} className="text-zinc-400 text-sm leading-relaxed font-light">
               {data.profile.bio}
             </motion.div>
-
-            <motion.div variants={itemVariants} className="flex flex-wrap gap-2.5 pt-2">
-              {data.profile.resume_url && (
-                <a 
-                  href={data.profile.resume_url} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  className="px-4 py-2 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-medium text-xs rounded-lg transition-all flex items-center gap-1.5 shadow-sm"
-                  onClick={() => {
-                    recordResumeDownload();
-                    try {
-                      track('resume_download_main');
-                    } catch (err) {
-                      console.error("Vercel Analytics track resume_download_main failed:", err);
-                    }
-                  }}
-                >
-                  <FileText className="w-4 h-4" />
-                  View Resume
-                </a>
-              )}
-              <button 
-                onClick={() => router.push('/planet/education')}
-                className="px-4 py-2 bg-zinc-900 hover:bg-zinc-850 text-zinc-300 font-medium text-xs rounded-lg border border-zinc-800 transition-all flex items-center gap-1.5"
-              >
-                Start Exploring
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
           </motion.div>
         );
 
@@ -209,15 +191,7 @@ export default function PlanetPanel() {
               ))}
             </div>
 
-            <motion.div variants={itemVariants} className="pt-2">
-              <button 
-                onClick={() => router.push('/planet/skills')}
-                className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-bold text-xs tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                Travel to Skills
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
+            {/* Travel buttons removed */}
           </motion.div>
         );
 
@@ -232,7 +206,7 @@ export default function PlanetPanel() {
               <p className="text-xs text-zinc-400">Core engineering competencies</p>
             </motion.div>
 
-            <div className="space-y-5 max-h-[52vh] overflow-y-auto pr-1">
+            <div className="space-y-5">
               {categories.map((cat) => {
                 const catSkills = data.skills.filter(s => s.is_visible && s.category === cat);
                 if (catSkills.length === 0) return null;
@@ -261,16 +235,6 @@ export default function PlanetPanel() {
                 );
               })}
             </div>
-
-            <motion.div variants={itemVariants} className="pt-2">
-              <button 
-                onClick={() => router.push('/planet/experience')}
-                className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-bold text-xs tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                Travel to Experience
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
           </motion.div>
         );
 
@@ -284,7 +248,7 @@ export default function PlanetPanel() {
               <p className="text-xs text-zinc-400">Professional career history</p>
             </motion.div>
 
-            <div className="space-y-4 max-h-[52vh] overflow-y-auto pr-1">
+            <div className="space-y-4">
               {data.experience.filter(e => e.is_visible).map((exp) => (
                 <motion.div 
                   key={exp.id} 
@@ -353,16 +317,6 @@ export default function PlanetPanel() {
                 </motion.div>
               ))}
             </div>
-
-            <motion.div variants={itemVariants} className="pt-2">
-              <button 
-                onClick={() => router.push('/planet/achievements')}
-                className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-bold text-xs tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm"
-              >
-                Travel to Achievements
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
-            </motion.div>
           </motion.div>
         );
 
@@ -376,7 +330,7 @@ export default function PlanetPanel() {
               <p className="text-xs text-zinc-400">Awards, credentials and certifications</p>
             </motion.div>
 
-            <div className="space-y-3.5 max-h-[52vh] overflow-y-auto pr-1">
+            <div className="space-y-3.5">
               {data.achievements.filter(a => a.is_visible).map((ach) => (
                 <motion.div key={ach.id} variants={itemVariants} className="bg-zinc-900/60 border border-zinc-850 p-4 rounded-xl flex gap-3.5 items-start">
                   <div className="p-2 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 shrink-0">
@@ -392,15 +346,50 @@ export default function PlanetPanel() {
                 </motion.div>
               ))}
             </div>
+          </motion.div>
+        );
+
+      case 'resume':
+        const resumeUrl = data?.profile?.resume_url || "https://drive.google.com/file/d/1V-Mt0mwd0c8uTQqYpGLs1uuO4vJp_9iu/view?usp=sharing";
+        return (
+          <motion.div variants={containerVariants} initial="hidden" animate="show" className="space-y-6">
+            <motion.div variants={itemVariants}>
+              <h2 className="text-xl font-bold text-white tracking-tight flex items-center gap-2">
+                Resume Uplink
+              </h2>
+              <p className="text-xs text-zinc-400">Access professional resume and credentials</p>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="relative w-full aspect-square max-w-[280px] mx-auto rounded-2xl overflow-hidden border border-zinc-800 shadow-2xl bg-zinc-900 flex items-center justify-center">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img 
+                src={data.profile.avatar || "/avatar-fallback.jpg"} 
+                alt={data.profile.name} 
+                className="w-full h-full object-cover" 
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/40 via-transparent to-transparent" />
+            </motion.div>
 
             <motion.div variants={itemVariants} className="pt-2">
-              <button 
-                onClick={() => router.push('/planet/contact')}
-                className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-bold text-xs tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm"
+              <a 
+                href={resumeUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="w-full py-3 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-bold text-xs tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-2 shadow-sm text-center pointer-events-auto cursor-pointer"
+                onClick={(e) => {
+                  console.log("Resume button clicked in PlanetPanel resume section");
+                  e.stopPropagation();
+                  recordResumeDownload();
+                  try {
+                    track('resume_view_main');
+                  } catch (err) {
+                    console.error("Vercel Analytics track resume_view_main failed:", err);
+                  }
+                }}
               >
-                Travel to Contact
-                <ArrowRight className="w-3.5 h-3.5" />
-              </button>
+                <Download className="w-4 h-4" />
+                Download Resume
+              </a>
             </motion.div>
           </motion.div>
         );
@@ -481,7 +470,8 @@ export default function PlanetPanel() {
               <a 
                 href={`mailto:${data.contact.email}`}
                 className="w-full py-2.5 bg-zinc-100 hover:bg-zinc-200 text-zinc-950 font-bold text-xs tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm text-center pointer-events-auto"
-                onClick={() => {
+                onClick={(e) => {
+                  e.stopPropagation();
                   recordContactClick();
                   try {
                     track('contact_email');
@@ -493,12 +483,6 @@ export default function PlanetPanel() {
                 <Mail className="w-4 h-4" />
                 Initiate Quantum Mail
               </a>
-              <button 
-                onClick={() => router.push('/')}
-                className="w-full py-2.5 bg-zinc-900 hover:bg-zinc-850 border border-zinc-800 text-zinc-300 font-bold text-xs tracking-wider uppercase rounded-xl transition-all flex items-center justify-center gap-1.5"
-              >
-                Return to Orbit
-              </button>
             </motion.div>
           </motion.div>
         );
@@ -517,18 +501,24 @@ export default function PlanetPanel() {
           initial="hidden"
           animate="visible"
           exit="exit"
-          className="fixed top-20 right-4 bottom-28 md:bottom-6 w-[calc(100%-2rem)] md:w-[460px] max-w-full bg-zinc-950/90 border border-zinc-850 backdrop-blur-xl rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.8)] p-6 z-30 select-none overflow-y-auto flex flex-col justify-between"
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+          onTouchStart={(e) => e.stopPropagation()}
+          className="fixed top-20 right-4 bottom-28 md:bottom-6 w-[calc(100%-2rem)] md:w-[460px] max-w-full bg-zinc-950/90 border border-zinc-850 backdrop-blur-xl rounded-2xl shadow-[0_12px_48px_rgba(0,0,0,0.8)] p-6 z-30 select-none overflow-hidden flex flex-col justify-between pointer-events-auto"
         >
           {/* Close Panel Button */}
           <button 
-            onClick={() => router.push('/')}
+            onClick={(e) => {
+              e.stopPropagation();
+              router.push('/');
+            }}
             className="absolute top-4.5 right-4.5 p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-white rounded-lg border border-transparent hover:border-zinc-800 transition-all pointer-events-auto cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
 
           {/* Dynamic Content */}
-          <div className="flex-1 mt-3">
+          <div className="flex-1 overflow-y-auto pr-1 mt-3 mb-4 scrollbar-thin scroll-smooth pointer-events-auto">
             {isLoading ? renderSkeleton() : renderContent()}
           </div>
 

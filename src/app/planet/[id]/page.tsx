@@ -13,7 +13,7 @@ export default function PlanetPage({ params }: PlanetPageProps) {
   const resolvedParams = React.use(params as any) as { id: string };
   const id = resolvedParams.id as PlanetId;
 
-  const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'contact'];
+  const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'resume', 'contact'];
 
   if (!validPlanets.includes(id)) {
     notFound();

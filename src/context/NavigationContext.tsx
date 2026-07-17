@@ -14,7 +14,7 @@ import {
 import { track } from '@vercel/analytics';
 import { recordVisitor, recordPlanetVisit, recordSessionDuration } from '@/lib/repositories/analytics';
 
-export type PlanetId = 'core' | 'education' | 'skills' | 'experience' | 'achievements' | 'contact' | 'space';
+export type PlanetId = 'core' | 'education' | 'skills' | 'experience' | 'achievements' | 'resume' | 'contact' | 'space';
 
 export type TravelState = 'idle' | 'aligning' | 'warping' | 'landing';
 
@@ -65,7 +65,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     const match = window.location.pathname.match(/\/planet\/([a-z]+)/);
     if (match) {
       const p = match[1] as PlanetId;
-      const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'contact'];
+      const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'resume', 'contact'];
       if (validPlanets.includes(p)) return p;
     }
     return null;
@@ -320,7 +320,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
 
     if (match) {
       const routePlanet = match[1] as PlanetId;
-      const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'contact'];
+      const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'resume', 'contact'];
       if (validPlanets.includes(routePlanet) && routePlanet !== currentPlanet && !isTravelling) {
         executeTravel(routePlanet);
       }
@@ -334,7 +334,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
     const match = pathname?.match(/\/planet\/([a-z]+)/);
     if (match) {
       const pathPlanet = match[1] as PlanetId;
-      const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'contact'];
+      const validPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'resume', 'contact'];
       if (validPlanets.includes(pathPlanet)) {
         setSelectedPlanet(pathPlanet);
         setActivePanel(pathPlanet);
@@ -346,7 +346,7 @@ export function NavigationProvider({ children }: { children: React.ReactNode }) 
   }, [pathname]);
 
   // Exploration percentage (6 key places)
-  const keyPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'contact'];
+  const keyPlanets: PlanetId[] = ['core', 'education', 'skills', 'experience', 'achievements', 'resume', 'contact'];
   const explorationProgress = Math.round(
     (visitedPlanets.filter(p => keyPlanets.includes(p)).length / keyPlanets.length) * 100
   );

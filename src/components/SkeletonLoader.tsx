@@ -53,7 +53,7 @@ export default function SkeletonLoader() {
         {/* Console loading details */}
         <div className="space-y-2">
           <h2 className="text-sm font-mono text-white font-bold tracking-widest uppercase">
-            CONNECTING TO CAREERVERSE
+            CONNECTING TO ADITI MALLICK
           </h2>
           <div className="text-[10px] font-mono text-neon-blue h-4 overflow-hidden">
             {TIPS[tipIndex]}

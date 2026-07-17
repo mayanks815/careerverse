@@ -98,7 +98,19 @@ export async function update(id: string, data: Partial<Contacts>): Promise<void>
     return;
   }
   try {
-    const docRef = doc(db!, COLLECTION_NAME, id);
+    let resolvedId = id;
+    if (!resolvedId || resolvedId === 'default' || resolvedId.startsWith('mock-')) {
+      const q = query(collection(db!, COLLECTION_NAME), orderBy('displayOrder', 'asc'));
+      const snap = await getDocs(q);
+      if (!snap.empty) {
+        resolvedId = snap.docs[0].id;
+      } else {
+        await create(data as Omit<Contacts, 'id'>);
+        return;
+      }
+    }
+
+    const docRef = doc(db!, COLLECTION_NAME, resolvedId);
     const updateData: any = {};
     if (data.email !== undefined) updateData.email = data.email;
     if (data.linkedin !== undefined) updateData.linkedin = data.linkedin;
